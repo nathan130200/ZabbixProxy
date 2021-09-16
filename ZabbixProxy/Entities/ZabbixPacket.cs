@@ -31,7 +31,9 @@ public class ZabbixPacket
         pos += 4;
 
         Array.Copy(Data, 0, buf, pos, Length);
+
         await s.WriteAsync(buf);
+        Util.FireOnPacketSent(Data);
     }
 
     public async Task<bool> ReadAsync(Stream s)
@@ -68,6 +70,7 @@ public class ZabbixPacket
         if (await s.ReadAsync(Data) != length)
             return false;
 
+        Util.FireOnPacketRecv(Data);
         return true;
     }
 

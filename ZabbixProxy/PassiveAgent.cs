@@ -25,6 +25,8 @@ public class PassiveAgent
     {
         endpoint = new IPEndPoint(IPAddress.Parse(listenUri.Host), listenUri.Port);
         proxyEndpoint = new IPEndPoint(IPAddress.Parse(connectUri.Host), connectUri.Port);
+        handlers = new ConcurrentDictionary<Regex, BaseHandler>();
+        RegisterHandlers(typeof(PassiveAgent).Assembly);
     }
 
     public void RegisterHandlers(Assembly assembly)
@@ -82,11 +84,11 @@ public class PassiveAgent
     {
         await Task.Yield();
 
-        if (cts?.IsCancellationRequested != false)
+        if (cts != null && !cts.IsCancellationRequested)
             return;
 
         cts = new CancellationTokenSource();
-        socket = new Socket(AddressFamily.InterNetwork, SocketType.Stream, ProtocolType.Tcp);
+        socket = new Socket(SocketType.Stream, ProtocolType.Tcp);
         socket.Bind(endpoint);
         socket.Listen();
 

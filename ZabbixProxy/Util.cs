@@ -9,4 +9,13 @@ public static class Util
 
     public static string GetString(this byte[] buf)
         => Encoding.UTF8.GetString(buf);
+
+    public static event Action<byte[]> OnPacketSent;
+    public static event Action<byte[]> OnPacketReceived;
+
+    internal static void FireOnPacketSent(byte[] buf)
+        => OnPacketSent?.Invoke(buf);
+
+    internal static void FireOnPacketRecv(byte[] buf)
+        => OnPacketReceived?.Invoke(buf);
 }

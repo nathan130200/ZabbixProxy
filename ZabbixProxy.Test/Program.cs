@@ -12,8 +12,18 @@ Console.CancelKeyPress += (s, e) =>
 
 var agent = new PassiveAgent(
     listenUri: new Uri("tcp://0.0.0.0:10052"),
-    connectUri: new Uri("tcp://0.0.0.0:10050")
+    connectUri: new Uri("tcp://127.0.0.1:10050")
 );
+
+Util.OnPacketReceived += buff =>
+{
+    Console.WriteLine("recv <<\n{0}\n", buff.GetString());
+};
+
+Util.OnPacketSent += buff =>
+{
+    Console.WriteLine("send >>\n{0}\n", buff.GetString());
+};
 
 await agent.StartAsync();
 
