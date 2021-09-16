@@ -70,7 +70,7 @@ public class ZabbixPacket
         if (await s.ReadAsync(Data) != length)
             return false;
 
-        Util.FireOnPacketRecv(Data);
+        Util.FireOnPacketReceived(Data);
         return true;
     }
 

@@ -16,6 +16,6 @@ public static class Util
     internal static void FireOnPacketSent(byte[] buf)
         => OnPacketSent?.Invoke(buf);
 
-    internal static void FireOnPacketRecv(byte[] buf)
+    internal static void FireOnPacketReceived(byte[] buf)
         => OnPacketReceived?.Invoke(buf);
 }
