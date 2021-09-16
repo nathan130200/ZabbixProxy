@@ -153,12 +153,19 @@ public class PassiveAgent
                         }
                         else
                         {
-                            var response = await MakeProxyRequestAsync(proxyEndpoint, result);
+                            try
+                            {
+                                var response = await MakeProxyRequestAsync(proxyEndpoint, result);
 
-                            if (response != null)
-                                await response.WriteAsync(stream);
-                            else
-                                await DispatchErrorAsync(stream, "Feature not supported");
+                                if (response != null)
+                                    await response.WriteAsync(stream);
+                                else
+                                    await DispatchErrorAsync(stream, "Feature not supported");
+                            }
+                            catch (Exception ex)
+                            {
+                                await DispatchErrorAsync(stream, $"Cannot retrieve packet from proxy!\n{ex.Message}");
+                            }
                         }
                     }
                     else
@@ -183,14 +190,34 @@ public class PassiveAgent
         }.WriteAsync(stream);
     }
 
-    static Task<ZabbixPacket> MakeProxyRequestAsync(IPEndPoint ep, ZabbixPacket packet, TimeSpan? timeout = default)
+    static Task<ZabbixPacket> MakeProxyRequestAsync(IPEndPoint endpoint, ZabbixPacket packet, TimeSpan? timeout = default)
     {
-        timeout ??= TimeSpan.FromSeconds(10);
-
         var tsc = new TaskCompletionSource<ZabbixPacket>();
-        {
+        var cts = new CancellationTokenSource(timeout.GetValueOrDefault(TimeSpan.FromSeconds(10)));
+        cts.Token.Register(() => tsc.TrySetResult(null));
 
-        }
+        _ = Task.Run(async () =>
+        {
+            try
+            {
+                using var client = new TcpClient();
+                await client.ConnectAsync(endpoint, cts.Token);
+
+                using var stream = client.GetStream();
+                await packet.WriteAsync(stream);
+                await stream.FlushAsync();
+
+                packet = new ZabbixPacket();
+
+                if (await packet.ReadAsync(stream))
+                    tsc.TrySetResult(packet);
+            }
+            catch (Exception ex)
+            {
+                tsc.TrySetException(ex);
+            }
+        });
+
         return tsc.Task;
     }
 }
