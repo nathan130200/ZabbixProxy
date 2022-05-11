@@ -1,5 +1,5 @@
 # Zabbix Proxy
-Local proxy between zabbix passive agent and zabbix server to communicate custom commands.
+Local proxy between zabbix passive agent and zabbix server to communicate custom commands.<br/>
 You can intercept and modify or implement new queries to use in zabbix triggers.
 
 ### How it works.
