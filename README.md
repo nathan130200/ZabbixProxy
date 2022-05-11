@@ -57,3 +57,54 @@ namespace MyZbxProxy.Handlers
 	}
 }
 ```
+You may require sometimes, passing arguments to handler and catch them. You can do just like an example:
+
+```cs
+using System;
+using System.Diagnostics;
+using System.Linq;
+using System.Net.NetworkInformation;
+using System.Threading.Tasks;
+using Zabbix.Api;
+
+namespace MyZbxProxy.Handlers
+{
+	[Key("proxy.ping")]
+	public class PingHandler : BaseHandler
+	{
+		public override async Task InvokeAsync(HandlerContext ctx)
+		{
+			// ctx.Command.Arguments receives all arguments of type CommandArgument,
+			// also you have direct access to parsing as int, bool, float, etc.
+			// just grab argument position.
+			
+			// in this example we will peform ping test for one or multiple hostnames in sequence then sum all values and get avg ping for all hosts.
+			var numHosts = ctx.Command.Arguments.Count(); 
+
+			// in this example, we respond error if server didn't sent any valid hosts for ping test.
+			if (numHosts == 0)
+				await ctx.RespondErrorAsync("Invalid address or hostname");
+			else
+			{
+				using (var ping = new Ping())
+				{
+					var latency = 0L;
+
+					foreach (var addr in ctx.Command.Arguments)
+					{
+						if (!string.IsNullOrEmpty(addr.Value))
+						{
+							var result = await ping.SendPingAsync(addr.Value);
+
+							if (result.Status == IPStatus.Success)
+								latency += result.RoundtripTime;
+						}
+					}
+
+					// we sent to zabbix server reply as float.
+					await ctx.RespondAsync(((float)latency / (float)numHosts));
+				}
+			}
+		}
+	}
+}```
