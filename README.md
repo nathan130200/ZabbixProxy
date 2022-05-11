@@ -8,7 +8,7 @@ You can intercept and modify or implement new queries to use in zabbix triggers.
 - Route command to local zabbix passive agent if proxy cannot handle command.
 
 <br>
-NOTE: If server fails to respond, zabbix proxy sends an request instead of destroying connection.
+NOTE: If local passive agent fails to reply then zabbix proxy sends an `ZBX_ERROR` instead of destroying connection without any reasons.
 
 ### Custom Commands
 You can manually implement custom commands to handle your request in zabbix server.
